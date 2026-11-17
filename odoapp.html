@@ -1,0 +1,1355 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Kleo - Prototipo Salud Auditiva</title>
+
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#ebf5ec">
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap');
+
+    :root {
+      --green-main: #52c41a;
+      --green-dark: #2e9c0c;
+      --green-ui: #3bb111;
+      --purple-warn: #8b5cf6;
+      --red-danger: #ef4444;
+      --thumb-color: #52c41a;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Nunito', -apple-system, BlinkMacSystemFont, sans-serif;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    @keyframes acousticShakeMed {
+      0%, 100% { transform: translate(0, 0) rotate(0deg); }
+      25% { transform: translate(-2px, 1.5px) rotate(-1.5deg); }
+      50% { transform: translate(2px, -1.5px) rotate(1.5deg); }
+      75% { transform: translate(-2px, -1px) rotate(-1deg); }
+    }
+
+    @keyframes acousticShakeHigh {
+      0%, 100% { transform: translate(0, 0) rotate(0deg) scale(1); }
+      20% { transform: translate(-4px, 2px) rotate(-3deg) scale(0.98); }
+      40% { transform: translate(4px, -2px) rotate(3deg) scale(1.02); }
+      60% { transform: translate(-4px, -2px) rotate(-2deg) scale(0.98); }
+      80% { transform: translate(4px, 2px) rotate(2deg) scale(1.02); }
+    }
+
+    .shake-medium { animation: acousticShakeMed 0.3s infinite ease-in-out; }
+    .shake-danger { animation: acousticShakeHigh 0.15s infinite ease-in-out; }
+
+    body {
+      background-color: #ebf5ec;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px;
+    }
+
+    .main-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 40px;
+      max-width: 1050px;
+      width: 100%;
+    }
+
+    .info-sidebar {
+      max-width: 360px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    @media (max-width: 820px) {
+      body { padding: 0; background-color: #ffffff; }
+      .main-container { gap: 0; }
+      .info-sidebar { display: none; }
+      .iphone-frame {
+        width: 100vw !important;
+        height: 100vh !important;
+        border: none !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+      }
+    }
+
+    .badge-ios {
+      align-self: flex-start;
+      background-color: var(--green-ui);
+      color: #ffffff;
+      font-size: 11px;
+      font-weight: 900;
+      padding: 4px 12px;
+      border-radius: 999px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .info-sidebar h1 {
+      font-size: 36px;
+      font-weight: 900;
+      color: #0f172a;
+      line-height: 1.1;
+    }
+
+    .info-sidebar p {
+      font-size: 14px;
+      color: #475569;
+      line-height: 1.5;
+      font-weight: 600;
+    }
+
+    .view-pills {
+      display: flex;
+      background-color: #ffffff;
+      padding: 4px;
+      border-radius: 999px;
+      border: 1px solid #cbd5e1;
+      width: 340px;
+    }
+
+    .pill-btn {
+      flex: 1;
+      border: none;
+      background: transparent;
+      padding: 8px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 800;
+      cursor: pointer;
+      color: #64748b;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      transition: all 0.2s ease;
+    }
+
+    .pill-btn.active {
+      background-color: #0f172a;
+      color: #ffffff;
+    }
+
+    .legend {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      color: #334155;
+      margin-top: 6px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+    }
+
+    .iphone-frame {
+      width: 360px;
+      height: 730px;
+      background-color: #ffffff;
+      border-radius: 50px;
+      border: 9px solid #0f172a;
+      box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.22);
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .top-bar {
+      padding: 12px 24px 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      font-weight: 900;
+      color: #0f172a;
+      position: relative;
+      z-index: 20;
+    }
+
+    .dynamic-island {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      top: 10px;
+      width: 90px;
+      height: 24px;
+      background-color: #000000;
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      padding-right: 8px;
+    }
+
+    .island-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: var(--green-ui);
+      transition: background-color 0.3s ease;
+    }
+
+    .screen-content {
+      flex: 1;
+      padding: 8px 18px 12px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      scrollbar-width: none;
+    }
+
+    .screen-content::-webkit-scrollbar { display: none; }
+
+    .app-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .user-greeting {
+      font-size: 9px;
+      font-weight: 900;
+      color: #94a3b8;
+      letter-spacing: 0.5px;
+    }
+
+    .app-title {
+      font-size: 15px;
+      font-weight: 900;
+      color: #0f172a;
+    }
+
+    .wallet-badge {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      background-color: #ecfdf5;
+      border: 1.5px solid #a7f3d0;
+      padding: 2px 9px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 900;
+      color: #059669;
+      cursor: pointer;
+      transition: transform 0.1s ease;
+    }
+
+    .wallet-badge:active { transform: scale(0.95); }
+
+    .hero-card {
+      border-radius: 24px;
+      padding: 10px 14px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transition: all 0.35s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .theme-forest { background: linear-gradient(180deg, #f2faf0 0%, #e7f7e4 100%); border: 2px solid #d3eed0; }
+    .theme-sunset { background: linear-gradient(180deg, #fff7ed 0%, #fed7aa 100%); border: 2px solid #fdba74; }
+    .theme-cyber { background: linear-gradient(180deg, #1e1b4b 0%, #312e81 100%); border: 2px solid #6366f1; }
+    .theme-cyber .db-label { color: #a5b4fc !important; }
+    .theme-zen { background: linear-gradient(180deg, #ffffff 0%, #f1f5f9 100%); border: 2px solid #e2e8f0; }
+
+    .hero-card.warning-medium {
+      background: linear-gradient(180deg, #f5f3ff 0%, #ede9fe 100%) !important;
+      border-color: #ddd6fe !important;
+    }
+
+    .hero-card.danger-high {
+      background: linear-gradient(180deg, #fff1f2 0%, #ffe4e6 100%) !important;
+      border-color: #fecdd3 !important;
+      box-shadow: inset 0 0 15px rgba(239, 68, 68, 0.2);
+    }
+
+    .speech-bubble {
+      background-color: var(--green-ui);
+      color: #ffffff;
+      font-size: 11px;
+      font-weight: 900;
+      padding: 3px 12px;
+      border-radius: 999px;
+      margin-bottom: 2px;
+      transition: background-color 0.3s ease;
+    }
+
+    .chameleon-wrapper {
+      width: 190px;
+      height: 180px;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 2px auto;
+    }
+
+    #cham-img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      /* Optimización GPU para transiciones suaves de filtro y vibración */
+      will-change: transform, filter;
+      transition: filter 0.3s ease;
+    }
+
+    .card-footer {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-top: 2px;
+    }
+
+    .db-label { font-size: 9px; font-weight: 900; color: #94a3b8; }
+    .db-value-group { display: flex; align-items: baseline; gap: 2px; }
+    .db-number { font-size: 34px; font-weight: 900; color: var(--green-dark); transition: color 0.3s ease; }
+    .db-unit { font-size: 16px; font-weight: 900; color: var(--green-dark); transition: color 0.3s ease; }
+
+    .status-badge {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      background-color: var(--green-ui);
+      color: #ffffff;
+      font-size: 11px;
+      font-weight: 900;
+      padding: 4px 10px;
+      border-radius: 999px;
+      transition: background-color 0.3s ease;
+    }
+
+    .mic-banner {
+      background-color: #f8fafc;
+      border: 1.5px dashed #cbd5e1;
+      border-radius: 16px;
+      padding: 8px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .mic-banner.active { background-color: #eff6ff; border-color: #3b82f6; }
+    .mic-title { font-size: 11px; font-weight: 900; color: #1e293b; display: flex; align-items: center; gap: 6px; }
+
+    .mic-pill {
+      font-size: 9px;
+      font-weight: 900;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background-color: #e2e8f0;
+      color: #475569;
+    }
+
+    .mic-pill.listening {
+      background-color: var(--red-danger);
+      color: #ffffff;
+      animation: pulse 1s infinite alternate;
+    }
+
+    @keyframes pulse { from { opacity: 0.7; } to { opacity: 1; } }
+
+    .control-card, .rule-card {
+      background-color: #ffffff;
+      border: 1px solid #f1f5f9;
+      border-radius: 20px;
+      padding: 10px 14px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+    }
+
+    .control-header, .rule-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      font-weight: 900;
+      color: #0f172a;
+      margin-bottom: 6px;
+    }
+
+    .slider-container { display: flex; align-items: center; gap: 8px; }
+    .slider-track-wrap { position: relative; flex: 1; height: 28px; display: flex; align-items: center; }
+
+    .slider-base-track {
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 8px;
+      background-color: #e2e8f0;
+      border-radius: 999px;
+      z-index: 1;
+    }
+
+    .slider-fill {
+      position: absolute;
+      left: 0;
+      height: 8px;
+      background-color: var(--green-main);
+      border-radius: 999px;
+      pointer-events: none;
+      z-index: 2;
+      transition: background-color 0.25s ease;
+    }
+
+    .slider-limit-line-75, .slider-limit-line-85 {
+      position: absolute;
+      width: 2.5px;
+      height: 14px;
+      pointer-events: none;
+      z-index: 3;
+      border-radius: 2px;
+    }
+
+    .slider-limit-line-75 { left: 58.3%; background-color: var(--purple-warn); }
+    .slider-limit-line-85 { left: 75%; background-color: var(--red-danger); }
+
+    input[type=range] {
+      width: 100%;
+      height: 100%;
+      background: transparent;
+      outline: none;
+      position: relative;
+      z-index: 4;
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: #ffffff;
+      border: 4px solid var(--thumb-color);
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.18);
+      transition: border-color 0.2s ease;
+    }
+
+    .slider-caption {
+      text-align: center;
+      font-size: 9px;
+      font-weight: 800;
+      color: #94a3b8;
+      margin-top: 4px;
+    }
+
+    .btn-limit {
+      width: 100%;
+      margin-top: 8px;
+      padding: 10px;
+      border-radius: 14px;
+      border: none;
+      background-color: var(--green-main);
+      color: #ffffff;
+      font-size: 12px;
+      font-weight: 900;
+      cursor: pointer;
+      box-shadow: 0 4px 0 #2e850b;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: transform 0.1s ease, background-color 0.2s ease;
+    }
+
+    .btn-limit:active { transform: translateY(3px); box-shadow: 0 1px 0 #2e850b; }
+
+    .rule-badge {
+      font-size: 9px;
+      font-weight: 900;
+      color: var(--green-ui);
+      background-color: #f0fdf4;
+      padding: 2px 8px;
+      border-radius: 6px;
+      transition: all 0.3s ease;
+    }
+
+    .rule-badge.paused {
+      color: #f59e0b;
+      background-color: #fffbeb;
+    }
+
+    .rule-body { display: flex; align-items: center; gap: 12px; }
+
+    .timer-ring-box {
+      width: 50px;
+      height: 50px;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .timer-text {
+      position: absolute;
+      font-size: 10px;
+      font-weight: 900;
+      color: #0f172a;
+    }
+
+    .rule-info { flex: 1; }
+    .rule-desc { font-size: 9px; font-weight: 700; color: #64748b; line-height: 1.3; }
+
+    .rule-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 6px;
+    }
+
+    .btn-icon-tiny {
+      width: 24px;
+      height: 24px;
+      background-color: #f1f5f9;
+      border: 1px solid #e2e8f0;
+      border-radius: 7px;
+      font-size: 10px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .btn-icon-tiny:active { transform: scale(0.9); }
+
+    .btn-rest {
+      background-color: #f59e0b;
+      color: #ffffff;
+      border: none;
+      border-radius: 7px;
+      padding: 4px 10px;
+      font-size: 10px;
+      font-weight: 900;
+      cursor: pointer;
+      box-shadow: 0 2px 0 #b45309;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .btn-rest:active { transform: translateY(2px); box-shadow: none; }
+
+    .rest-modal {
+      position: absolute;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(8px);
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      text-align: center;
+      color: #ffffff;
+    }
+
+    .shop-header-card {
+      background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+      border-radius: 20px;
+      padding: 14px;
+      color: #ffffff;
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+    }
+
+    .shop-header-title { font-size: 14px; font-weight: 900; display: flex; align-items: center; gap: 6px; }
+    .shop-header-sub { font-size: 10px; opacity: 0.9; margin-top: 4px; line-height: 1.3; font-weight: 600; }
+    .shop-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 4px; }
+
+    .shop-item-card {
+      background: #ffffff;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 18px;
+      padding: 12px 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 4px;
+    }
+
+    .shop-item-icon { font-size: 28px; height: 38px; display: flex; align-items: center; justify-content: center; }
+    .shop-item-name { font-size: 11px; font-weight: 900; color: #0f172a; }
+
+    .shop-item-price {
+      font-size: 10px;
+      font-weight: 800;
+      color: #059669;
+      background: #ecfdf5;
+      padding: 2px 8px;
+      border-radius: 999px;
+    }
+
+    .shop-item-btn {
+      width: 100%;
+      margin-top: 4px;
+      padding: 6px;
+      border-radius: 10px;
+      border: none;
+      font-size: 10px;
+      font-weight: 900;
+      cursor: pointer;
+    }
+
+    .btn-buy { background-color: #0f172a; color: #ffffff; }
+    .btn-equip { background-color: var(--green-ui); color: #ffffff; }
+    .btn-equipped { background-color: #e2e8f0; color: #64748b; cursor: default; }
+
+    .lock-screen {
+      background: linear-gradient(180deg, #0f172a 0%, #1e1b4b 100%);
+      color: #ffffff;
+      padding: 24px 18px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .lock-clock-box { text-align: center; margin-top: 10px; }
+    .lock-clock { font-size: 40px; font-weight: 900; line-height: 1; }
+    .lock-date { font-size: 11px; color: #94a3b8; font-weight: 700; margin-top: 4px; }
+
+    .live-activity-card {
+      background: rgba(30, 41, 59, 0.8);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      padding: 10px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .lock-alert-card {
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid rgba(139, 92, 246, 0.4);
+      border-radius: 18px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      transition: border-color 0.3s ease;
+    }
+
+    .alert-header { display: flex; justify-content: space-between; font-size: 10px; font-weight: 900; color: #c084fc; }
+    .alert-title { font-size: 12px; font-weight: 900; color: #ffffff; }
+    .alert-text { font-size: 11px; color: #cbd5e1; line-height: 1.4; font-weight: 600; }
+    .alert-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+
+    .btn-alert-action {
+      background-color: var(--purple-warn);
+      color: #ffffff;
+      border: none;
+      padding: 8px;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 900;
+      cursor: pointer;
+    }
+
+    .btn-alert-secondary {
+      background: rgba(255,255,255,0.1);
+      color: #e2e8f0;
+      border: none;
+      padding: 8px;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .phone-nav {
+      background-color: #ffffff;
+      border-top: 1px solid #f1f5f9;
+      display: flex;
+      justify-content: space-around;
+      padding: 8px 10px 16px;
+      z-index: 20;
+    }
+
+    .nav-item {
+      border: none;
+      background: transparent;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      font-size: 10px;
+      font-weight: 900;
+      color: #94a3b8;
+      cursor: pointer;
+    }
+
+    .nav-item.active { color: var(--green-ui); }
+
+    .home-bar {
+      position: absolute;
+      bottom: 4px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 120px;
+      height: 4px;
+      background-color: #cbd5e1;
+      border-radius: 999px;
+      pointer-events: none;
+    }
+
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+
+  <div class="main-container">
+    
+    <div class="info-sidebar">
+      <div class="badge-ios">PROTOTIPO INTERACTIVO</div>
+      <h1>Kleo</h1>
+      <p>Prototipo funcional de salud auditiva infantil basado en la Regla 60/60 de la OMS y monitoreo acústico en tiempo real.</p>
+
+      <div class="view-pills">
+        <button data-view="live" class="pill-btn active">⚡ En vivo</button>
+        <button data-view="shop" class="pill-btn">🛍️ Tienda</button>
+        <button data-view="lock" class="pill-btn">🔒 Lock Screen</button>
+      </div>
+
+      <div class="legend">
+        <div class="legend-item">
+          <div class="dot" style="background-color: #52c41a;"></div>
+          <span>Verde: Zona segura (≤ 75 dB)</span>
+        </div>
+        <div class="legend-item">
+          <div class="dot" style="background-color: #8b5cf6;"></div>
+          <span>Morado: Riesgo medio / Fatiga (76 – 85 dB)</span>
+        </div>
+        <div class="legend-item">
+          <div class="dot" style="background-color: #ef4444;"></div>
+          <span>Rojo: Peligro crítico (> 85 dB)</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="iphone-frame">
+      <div class="top-bar">
+        <span>14:20</span>
+        <div class="dynamic-island">
+          <div id="island-mic" class="island-dot"></div>
+        </div>
+        <div style="display: flex; gap: 4px;">
+          <span>📶</span>
+          <span>🔋</span>
+        </div>
+      </div>
+
+      <!-- Vista 1: Monitoreo principal -->
+      <div id="screen-live" class="screen-content">
+        <div class="app-header">
+          <div>
+            <div class="user-greeting">HOLA, USUARIO</div>
+            <div class="app-title">Kleo</div>
+          </div>
+          <div id="wallet-live" title="Recargar puntos de prueba" class="wallet-badge">
+            <span>🪙</span> <span id="coin-counter-main">100</span>
+          </div>
+        </div>
+
+        <div id="mic-toggle-btn" class="mic-banner">
+          <div class="mic-title">
+            <span>🎙️</span> <span id="mic-label">Activar Micrófono Real</span>
+          </div>
+          <span id="mic-status-pill" class="mic-pill">Apagado</span>
+        </div>
+
+        <div id="hero-card" class="hero-card theme-forest">
+          <div id="speech-bubble" class="speech-bubble">¡Mis oídos están felices!</div>
+          
+          <div class="chameleon-wrapper">
+  <img id="cham-img" src="odo,png.png" alt="Personaje Kleo">
+</div>
+
+          <div class="card-footer">
+            <div>
+              <div class="db-label">NIVEL SONORO</div>
+              <div class="db-value-group">
+                <span id="db-number" class="db-number">45</span>
+                <span id="db-unit" class="db-unit">dB</span>
+              </div>
+            </div>
+            <div id="status-badge" class="status-badge">
+              <span>🛡️</span>
+              <span id="status-badge-text">Zona segura</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="control-card">
+          <div class="control-header">
+            <span>Volumen / Ruido</span>
+            <span style="font-size: 10px; color: #94a3b8;">40 – 100 dB</span>
+          </div>
+
+          <div class="slider-container">
+            <span style="font-size: 12px; color: #94a3b8;">🔈</span>
+            <div class="slider-track-wrap">
+              <div class="slider-base-track"></div>
+              <div id="slider-fill" class="slider-fill" style="width: 8.3%;"></div>
+              <div class="slider-limit-line-75"></div>
+              <div class="slider-limit-line-85"></div>
+              <input id="volume-slider" type="range" min="40" max="100" value="45">
+            </div>
+            <span style="font-size: 12px; color: #94a3b8;">🔊</span>
+          </div>
+          <div class="slider-caption">Líneas = 75 dB (Alerta) | 85 dB (Crítico)</div>
+
+          <button class="btn-limit" id="btn-limit">
+            <span>🛡️</span> LIMITAR AL 60%
+          </button>
+        </div>
+
+        <div class="rule-card">
+          <div class="rule-header">
+            <span>Regla 60/60</span>
+            <span id="rule-status-badge" class="rule-badge">🎧 ESCUCHANDO</span>
+          </div>
+          <div class="rule-body">
+            <div class="timer-ring-box">
+              <svg viewBox="0 0 36 36" style="width: 100%; height: 100%; transform: rotate(-90deg);">
+                <circle cx="18" cy="18" r="14" fill="none" stroke="#f1f5f9" stroke-width="3.5"/>
+                <circle id="timer-stroke" cx="18" cy="18" r="14" fill="none" stroke="#52c41a" stroke-width="3.5" stroke-dasharray="88" stroke-dashoffset="0" stroke-linecap="round" style="transition: stroke-dashoffset 0.5s linear, stroke 0.3s;"/>
+              </svg>
+              <span id="timer-display" class="timer-text">60:00</span>
+            </div>
+            <div class="rule-info">
+              <p class="rule-desc">Máximo 60 min a menos de 75 dB. ¡Gana +50 🪙 por cada descanso!</p>
+              <div class="rule-actions">
+                <button id="btn-timer-pause" class="btn-icon-tiny" title="Pausar o reanudar">⏸</button>
+                <button id="btn-timer-reset" class="btn-icon-tiny" title="Reiniciar 60 minutos">🔄</button>
+                <button id="btn-rest-start" class="btn-rest">
+                  <span>☕</span> DESCANSAR
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal descanso 10 min -->
+      <div id="rest-modal" class="rest-modal hidden">
+        <div style="font-size: 40px; margin-bottom: 8px;">🧘‍♂️</div>
+        <h2 style="font-size: 18px; font-weight: 900; margin-bottom: 6px;">¡Descanso Auditivo Activado!</h2>
+        <p style="font-size: 11px; color: #cbd5e1; line-height: 1.4; margin-bottom: 16px;">
+          Retírate los auriculares. Tus células ciliadas cocleares necesitan silencio para recuperarse.
+        </p>
+        <div style="font-size: 38px; font-weight: 900; color: #52c41a; margin-bottom: 6px;" id="rest-timer-display">
+          10:00
+        </div>
+        <p style="font-size: 10px; color: #a7f3d0; font-weight: 800; margin-bottom: 20px;">
+          +50 🪙 acreditadas a tu billetera
+        </p>
+        <button id="btn-rest-close" class="btn-limit" style="max-width: 200px; margin: 0 auto; background: #3b82f6; box-shadow: 0 4px 0 #1d4ed8;">
+          Terminar descanso
+        </button>
+      </div>
+
+      <!-- Vista 2: Tienda de hábitats -->
+      <div id="screen-shop" class="screen-content hidden">
+        <div class="app-header">
+          <div>
+            <div class="user-greeting">RECOMPENSAS AUDITIVAS</div>
+            <div class="app-title">Tienda de Hábitats</div>
+          </div>
+          <div id="wallet-shop" title="Recargar puntos de prueba" class="wallet-badge">
+            <span>🪙</span> <span id="coin-counter-shop">100</span>
+          </div>
+        </div>
+
+        <div class="shop-header-card">
+          <div class="shop-header-title">
+            <span>🏞️</span> ¡Cambia el escenario de Kleo!
+          </div>
+          <p class="shop-header-sub">
+            Usa tus monedas ganadas por proteger tus oídos para desbloquear nuevos hábitats visuales.
+          </p>
+        </div>
+
+        <div class="shop-grid">
+          <div class="shop-item-card">
+            <div class="shop-item-icon">🌿</div>
+            <div class="shop-item-name">Bosque Seguro</div>
+            <div class="shop-item-price">Inicial</div>
+            <button data-theme="forest" class="shop-item-btn btn-equipped">✓ Equipado</button>
+          </div>
+
+          <div class="shop-item-card">
+            <div class="shop-item-icon">🌅</div>
+            <div class="shop-item-name">Atardecer Tropical</div>
+            <div class="shop-item-price">150 🪙</div>
+            <button data-theme="sunset" class="shop-item-btn btn-buy">Comprar</button>
+          </div>
+
+          <div class="shop-item-card">
+            <div class="shop-item-icon">🌌</div>
+            <div class="shop-item-name">Noche Cyber</div>
+            <div class="shop-item-price">250 🪙</div>
+            <button data-theme="cyber" class="shop-item-btn btn-buy">Comprar</button>
+          </div>
+
+          <div class="shop-item-card">
+            <div class="shop-item-icon">☁️</div>
+            <div class="shop-item-name">Estudio Zen</div>
+            <div class="shop-item-price">200 🪙</div>
+            <button data-theme="zen" class="shop-item-btn btn-buy">Comprar</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Vista 3: Simulación pantalla de bloqueo -->
+      <div id="screen-lock" class="screen-content lock-screen hidden">
+        <div class="lock-clock-box">
+          <div style="font-size: 14px;">🔒</div>
+          <div class="lock-clock">14:20</div>
+          <div class="lock-date">Lunes, 9 de noviembre</div>
+        </div>
+
+        <div class="live-activity-card">
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <span>🦎</span>
+            <span>Kleo Monitoreo</span>
+          </div>
+          <span id="lock-pill-status" style="color: #52c41a; font-weight: 900;">45 dB • Seguro</span>
+        </div>
+
+        <div id="lock-notification" class="lock-alert-card">
+          <div class="alert-header">
+            <span>🎧 Kleo • Alerta</span>
+            <span style="color: #94a3b8;">Ahora</span>
+          </div>
+          <div id="lock-notif-title" class="alert-title">¡Cuidado con tus oídos!</div>
+          <div id="lock-notif-desc" class="alert-text">
+            Presión sonora en zona de fatiga (<span id="alert-db-val">88</span> dB). Limita la potencia para proteger tus células ciliadas.
+          </div>
+          <div class="alert-btns">
+            <button id="lock-btn-action" class="btn-alert-action">Bajar al 60%</button>
+            <button id="lock-btn-rest" class="btn-alert-secondary">Pausar 10 min</button>
+          </div>
+        </div>
+
+        <div style="margin-top: auto; text-align: center; font-size: 10px; color: #64748b; font-weight: 700;">
+          Desliza hacia arriba para desbloquear
+        </div>
+      </div>
+
+      <div class="phone-nav">
+        <button data-view="live" class="nav-item active">
+          <span style="font-size: 14px;">⚡</span>
+          <span>En vivo</span>
+        </button>
+        <button data-view="shop" class="nav-item">
+          <span style="font-size: 14px;">🛍️</span>
+          <span>Tienda</span>
+        </button>
+        <button data-view="lock" class="nav-item">
+          <span style="font-size: 14px;">🔒</span>
+          <span>Lock Screen</span>
+        </button>
+      </div>
+
+      <div class="home-bar"></div>
+    </div>
+  </div>
+
+  <script>
+    // Caché de referencias al DOM para evitar consultas repetidas en el loop de audio
+    const dom = {
+      slider: document.getElementById('volume-slider'),
+      sliderFill: document.getElementById('slider-fill'),
+      dbNumber: document.getElementById('db-number'),
+      dbUnit: document.getElementById('db-unit'),
+      speech: document.getElementById('speech-bubble'),
+      heroCard: document.getElementById('hero-card'),
+      statusBadge: document.getElementById('status-badge'),
+      statusBadgeText: document.getElementById('status-badge-text'),
+      islandMic: document.getElementById('island-mic'),
+      lockPillStatus: document.getElementById('lock-pill-status'),
+      alertDbVal: document.getElementById('alert-db-val'),
+      btnLimit: document.getElementById('btn-limit'),
+      chamImg: document.getElementById('cham-img'),
+      lockNotification: document.getElementById('lock-notification'),
+      lockBtnAction: document.getElementById('lock-btn-action'),
+      lockNotifTitle: document.getElementById('lock-notif-title'),
+      lockNotifDesc: document.getElementById('lock-notif-desc'),
+      timerDisplay: document.getElementById('timer-display'),
+      timerStroke: document.getElementById('timer-stroke'),
+      ruleStatusBadge: document.getElementById('rule-status-badge'),
+      btnTimerPause: document.getElementById('btn-timer-pause')
+    };
+
+    // --- Temporizador Regla 60/60 ---
+    const TOTAL_SECONDS_60 = 3600;
+    const RING_CIRCUMFERENCE = 88; // 2 * PI * 14
+    let remainingSeconds = TOTAL_SECONDS_60;
+    let timerRunning = true;
+    let timerInterval = null;
+
+    function updateTimerUI() {
+      const minutes = Math.floor(remainingSeconds / 60);
+      const seconds = remainingSeconds % 60;
+      dom.timerDisplay.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+
+      const progress = (TOTAL_SECONDS_60 - remainingSeconds) / TOTAL_SECONDS_60;
+      dom.timerStroke.style.strokeDashoffset = RING_CIRCUMFERENCE * progress;
+    }
+
+    function startListeningTimer() {
+      clearInterval(timerInterval);
+      timerInterval = setInterval(() => {
+        if (!timerRunning || remainingSeconds <= 0) return;
+        remainingSeconds--;
+        updateTimerUI();
+        if (remainingSeconds === 0) {
+          timerRunning = false;
+          startRestModal();
+        }
+      }, 1000);
+    }
+
+    function toggleTimer() {
+      timerRunning = !timerRunning;
+      dom.btnTimerPause.textContent = timerRunning ? '⏸' : '▶';
+      dom.ruleStatusBadge.textContent = timerRunning ? '🎧 ESCUCHANDO' : '⏸ EN PAUSA';
+      dom.ruleStatusBadge.classList.toggle('paused', !timerRunning);
+    }
+
+    function resetTimer() {
+      remainingSeconds = TOTAL_SECONDS_60;
+      timerRunning = true;
+      dom.btnTimerPause.textContent = '⏸';
+      dom.ruleStatusBadge.textContent = '🎧 ESCUCHANDO';
+      dom.ruleStatusBadge.classList.remove('paused');
+      updateTimerUI();
+    }
+
+    // --- Modal de descanso ---
+    let restSeconds = 600;
+    let restInterval = null;
+
+    function startRestModal() {
+      document.getElementById('rest-modal').classList.remove('hidden');
+      addCredits(50);
+      setLimit60();
+
+      restSeconds = 600;
+      updateRestUI();
+
+      clearInterval(restInterval);
+      restInterval = setInterval(() => {
+        if (restSeconds > 0) {
+          restSeconds--;
+          updateRestUI();
+        } else {
+          closeRestModal();
+        }
+      }, 1000);
+    }
+
+    function updateRestUI() {
+      const m = Math.floor(restSeconds / 60);
+      const s = restSeconds % 60;
+      document.getElementById('rest-timer-display').textContent = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    }
+
+    function closeRestModal() {
+      document.getElementById('rest-modal').classList.add('hidden');
+      clearInterval(restInterval);
+      resetTimer();
+    }
+
+    function setLimit60() {
+      dom.slider.value = 60;
+      updateVolume(60);
+      dom.speech.textContent = '🛡️ Volumen fijado al 60%';
+      setTimeout(() => {
+        if (Number(dom.slider.value) <= 75) {
+          dom.speech.textContent = '¡Mis oídos están felices!';
+        }
+      }, 2500);
+    }
+
+    // --- Tienda y monedas ---
+    let userCoins = 100;
+    let currentTheme = 'forest';
+
+    const themes = {
+      forest: { class: 'theme-forest', owned: true, price: 0 },
+      sunset: { class: 'theme-sunset', owned: false, price: 150 },
+      cyber:  { class: 'theme-cyber', owned: false, price: 250 },
+      zen:    { class: 'theme-zen', owned: false, price: 200 }
+    };
+
+    function addCredits(amount) {
+      userCoins += amount;
+      document.getElementById('coin-counter-main').textContent = userCoins;
+      document.getElementById('coin-counter-shop').textContent = userCoins;
+    }
+
+    function handleThemeAction(themeKey) {
+      const theme = themes[themeKey];
+      if (!theme.owned) {
+        if (userCoins < theme.price) {
+          alert('No tienes suficientes monedas. Toca el contador de monedas para sumar créditos de prueba.');
+          return;
+        }
+        addCredits(-theme.price);
+        theme.owned = true;
+      }
+      currentTheme = themeKey;
+      dom.heroCard.classList.remove('theme-forest', 'theme-sunset', 'theme-cyber', 'theme-zen');
+      dom.heroCard.classList.add(theme.class);
+      refreshThemeButtons();
+    }
+
+    function refreshThemeButtons() {
+      document.querySelectorAll('[data-theme]').forEach(btn => {
+        const key = btn.dataset.theme;
+        const theme = themes[key];
+        if (!theme.owned) {
+          btn.className = 'shop-item-btn btn-buy';
+          btn.textContent = 'Comprar';
+        } else if (currentTheme === key) {
+          btn.className = 'shop-item-btn btn-equipped';
+          btn.textContent = '✓ Equipado';
+        } else {
+          btn.className = 'shop-item-btn btn-equip';
+          btn.textContent = 'Equipar';
+        }
+      });
+    }
+
+    // --- Captura de audio Web Audio API ---
+    let audioContext = null;
+    let analyser = null;
+    let microphoneStream = null;
+    let frequencyData = null; // Buffer reutilizable para evitar garbage collection en cada frame
+    let isMicActive = false;
+    let animFrameId = null;
+
+    async function toggleMicrophone() {
+      const micBtn = document.getElementById('mic-toggle-btn');
+      const micLabel = document.getElementById('mic-label');
+      const micStatus = document.getElementById('mic-status-pill');
+
+      if (!isMicActive) {
+        try {
+          audioContext = new (window.AudioContext || window.webkitAudioContext)();
+          microphoneStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+          
+          const source = audioContext.createMediaStreamSource(microphoneStream);
+          analyser = audioContext.createAnalyser();
+          analyser.fftSize = 512;
+          analyser.smoothingTimeConstant = 0.4;
+          source.connect(analyser);
+
+          frequencyData = new Uint8Array(analyser.frequencyBinCount);
+          isMicActive = true;
+
+          micBtn.classList.add('active');
+          micLabel.textContent = 'Micrófono Escuchando...';
+          micStatus.textContent = 'EN VIVO';
+          micStatus.className = 'mic-pill listening';
+
+          processAudio();
+        } catch (err) {
+          alert('No se pudo acceder al micrófono. Verifica los permisos del navegador.');
+          console.error(err);
+        }
+      } else {
+        if (microphoneStream) microphoneStream.getTracks().forEach(t => t.stop());
+        if (audioContext) audioContext.close();
+        cancelAnimationFrame(animFrameId);
+        isMicActive = false;
+
+        micBtn.classList.remove('active');
+        micLabel.textContent = 'Activar Micrófono Real';
+        micStatus.textContent = 'Apagado';
+        micStatus.className = 'mic-pill';
+      }
+    }
+
+    function processAudio() {
+      if (!isMicActive) return;
+
+      analyser.getByteFrequencyData(frequencyData);
+
+      let sum = 0;
+      for (let i = 0; i < frequencyData.length; i++) {
+        sum += frequencyData[i] * frequencyData[i];
+      }
+      const rms = Math.sqrt(sum / frequencyData.length);
+      const calculatedDb = Math.min(100, Math.max(40, Math.round(40 + (rms / 255) * 90)));
+
+      dom.slider.value = calculatedDb;
+      updateVolume(calculatedDb);
+
+      animFrameId = requestAnimationFrame(processAudio);
+    }
+
+    // --- Actualización de estados según umbral dB ---
+    function updateVolume(val) {
+      dom.dbNumber.textContent = val;
+      dom.alertDbVal.textContent = val;
+
+      const pct = ((val - 40) / 60) * 100;
+      dom.sliderFill.style.width = `${pct}%`;
+
+      if (val <= 75) {
+        dom.sliderFill.style.backgroundColor = '#52c41a';
+        document.documentElement.style.setProperty('--thumb-color', '#52c41a');
+        dom.chamImg.style.filter = 'none';
+        dom.chamImg.classList.remove('shake-medium', 'shake-danger');
+
+        dom.dbNumber.style.color = '#2e9c0c';
+        dom.dbUnit.style.color = '#2e9c0c';
+        dom.heroCard.classList.remove('warning-medium', 'danger-high');
+        dom.speech.style.backgroundColor = '#3bb111';
+        dom.speech.textContent = '¡Mis oídos están felices!';
+        dom.statusBadge.style.backgroundColor = '#3bb111';
+        dom.statusBadgeText.textContent = 'Zona segura';
+        dom.islandMic.style.backgroundColor = '#3bb111';
+        dom.lockPillStatus.textContent = `${val} dB • Seguro`;
+        dom.lockPillStatus.style.color = '#52c41a';
+        dom.timerStroke.setAttribute('stroke', '#52c41a');
+        dom.btnLimit.style.backgroundColor = '#52c41a';
+        dom.btnLimit.style.boxShadow = '0 4px 0 #2e850b';
+
+      } else if (val <= 85) {
+        dom.sliderFill.style.backgroundColor = '#8b5cf6';
+        document.documentElement.style.setProperty('--thumb-color', '#8b5cf6');
+        dom.chamImg.style.filter = 'hue-rotate(185deg) saturate(1.5) brightness(0.95)';
+        dom.chamImg.classList.remove('shake-danger');
+        dom.chamImg.classList.add('shake-medium');
+
+        dom.dbNumber.style.color = '#7c3aed';
+        dom.dbUnit.style.color = '#7c3aed';
+        dom.heroCard.classList.remove('danger-high');
+        dom.heroCard.classList.add('warning-medium');
+        dom.speech.style.backgroundColor = '#8b5cf6';
+        dom.speech.textContent = '¡Volumen alto! Empiezo a cansarme';
+        dom.statusBadge.style.backgroundColor = '#8b5cf6';
+        dom.statusBadgeText.textContent = 'Riesgo medio';
+        dom.islandMic.style.backgroundColor = '#8b5cf6';
+        dom.lockPillStatus.textContent = `${val} dB • ¡Riesgo!`;
+        dom.lockPillStatus.style.color = '#c084fc';
+        dom.timerStroke.setAttribute('stroke', '#8b5cf6');
+        dom.btnLimit.style.backgroundColor = '#8b5cf6';
+        dom.btnLimit.style.boxShadow = '0 4px 0 #5b21b6';
+
+        dom.lockNotification.style.borderColor = 'rgba(139, 92, 246, 0.5)';
+        dom.lockBtnAction.style.backgroundColor = '#8b5cf6';
+        dom.lockNotifTitle.textContent = '¡Cuidado con tus oídos!';
+        dom.lockNotifDesc.innerHTML = `Presión sonora en zona de fatiga (<span>${val}</span> dB). Limita la potencia para proteger tus células ciliadas.`;
+
+      } else {
+        dom.sliderFill.style.backgroundColor = '#ef4444';
+        document.documentElement.style.setProperty('--thumb-color', '#ef4444');
+        dom.chamImg.style.filter = 'hue-rotate(290deg) saturate(2.3) contrast(1.1)';
+        dom.chamImg.classList.remove('shake-medium');
+        dom.chamImg.classList.add('shake-danger');
+
+        dom.dbNumber.style.color = '#dc2626';
+        dom.dbUnit.style.color = '#dc2626';
+        dom.heroCard.classList.remove('warning-medium');
+        dom.heroCard.classList.add('danger-high');
+        dom.speech.style.backgroundColor = '#ef4444';
+        dom.speech.textContent = '⚠️ ¡PELIGRO! Presión auditiva crítica';
+        dom.statusBadge.style.backgroundColor = '#ef4444';
+        dom.statusBadgeText.textContent = '¡Peligro alto!';
+        dom.islandMic.style.backgroundColor = '#ef4444';
+        dom.lockPillStatus.textContent = `${val} dB • ¡PELIGRO!`;
+        dom.lockPillStatus.style.color = '#f87171';
+        dom.timerStroke.setAttribute('stroke', '#ef4444');
+        dom.btnLimit.style.backgroundColor = '#ef4444';
+        dom.btnLimit.style.boxShadow = '0 4px 0 #b91c1c';
+
+        dom.lockNotification.style.borderColor = 'rgba(239, 68, 68, 0.7)';
+        dom.lockBtnAction.style.backgroundColor = '#ef4444';
+        dom.lockNotifTitle.textContent = '🚨 ¡PELIGRO AUDITIVO INMEDIATO!';
+        dom.lockNotifDesc.innerHTML = `Volumen crítico (<span>${val}</span> dB). El daño coclear puede ser permanente si no reduces el volumen de inmediato.`;
+      }
+    }
+
+    // Navegación unificada entre vistas
+    function switchView(view) {
+      ['live', 'shop', 'lock'].forEach(v => {
+        document.getElementById(`screen-${v}`).classList.toggle('hidden', v !== view);
+      });
+      document.querySelectorAll('[data-view]').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.view === view);
+      });
+    }
+
+    // Event Listeners
+    dom.slider.addEventListener('input', (e) => updateVolume(Number(e.target.value)));
+    document.getElementById('mic-toggle-btn').addEventListener('click', toggleMicrophone);
+    dom.btnLimit.addEventListener('click', setLimit60);
+    dom.btnTimerPause.addEventListener('click', toggleTimer);
+    document.getElementById('btn-timer-reset').addEventListener('click', resetTimer);
+    document.getElementById('btn-rest-start').addEventListener('click', startRestModal);
+    document.getElementById('btn-rest-close').addEventListener('click', closeRestModal);
+    document.getElementById('wallet-live').addEventListener('click', () => addCredits(200));
+    document.getElementById('wallet-shop').addEventListener('click', () => addCredits(200));
+
+    dom.lockBtnAction.addEventListener('click', () => {
+      setLimit60();
+      switchView('live');
+    });
+
+    document.getElementById('lock-btn-rest').addEventListener('click', () => {
+      startRestModal();
+      switchView('live');
+    });
+
+    document.querySelectorAll('[data-view]').forEach(btn => {
+      btn.addEventListener('click', () => switchView(btn.dataset.view));
+    });
+
+    document.querySelectorAll('[data-theme]').forEach(btn => {
+      btn.addEventListener('click', () => handleThemeAction(btn.dataset.theme));
+    });
+
+    // Arranque inicial
+    updateVolume(45);
+    updateTimerUI();
+    startListeningTimer();
+  </script>
+</body>
+</html>
